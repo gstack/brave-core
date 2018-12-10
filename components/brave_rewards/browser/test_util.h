@@ -80,9 +80,16 @@ class MockLedgerClient : public ledger::Ledger {
       void(std::unique_ptr<ledger::PublisherInfo> publisher_info,
            ledger::PublisherInfoCallback callback));
 
-  MOCK_METHOD2(GetPublisherInfo, void(const ledger::PublisherInfoFilter& filter,
+  MOCK_METHOD2(SetActivityInfo,
+      void(std::unique_ptr<ledger::PublisherInfo> publisher_info,
+           ledger::PublisherInfoCallback callback));
+
+  MOCK_METHOD2(GetPublisherInfo, void(const std::string& publisher_key,
                                       ledger::PublisherInfoCallback callback));
 
+  MOCK_METHOD2(GetActivityInfo, void(const ledger::ActivityInfoFilter& filter,
+                                      ledger::PublisherInfoCallback callback));
+ 
   MOCK_METHOD2(SetMediaPublisherInfo, void(const std::string& media_key,
                                            const std::string& publisher_id));
 
@@ -90,13 +97,19 @@ class MockLedgerClient : public ledger::Ledger {
       const std::string& media_key,
       ledger::PublisherInfoCallback callback));
 
+  MOCK_METHOD4(GetActivityInfoList, void(
+      uint32_t start,
+      uint32_t limit,
+      const ledger::ActivityInfoFilter &filter,
+      ledger::PublisherInfoListCallback callback));
+
   MOCK_METHOD0(GetRecurringDonationPublisherInfo,
                std::vector<ledger::ContributionInfo>());
 
   MOCK_METHOD4(GetPublisherInfoList, void(
       uint32_t start,
       uint32_t limit,
-      const ledger::PublisherInfoFilter& filter,
+      const ledger::ActivityInfoFilter& filter,
       ledger::PublisherInfoListCallback callback));
 
   MOCK_METHOD1(SetRewardsMainEnabled, void(bool enabled));
@@ -116,7 +129,7 @@ class MockLedgerClient : public ledger::Ledger {
   MOCK_METHOD1(SetAutoContribute, void(bool enabled));
 
   MOCK_METHOD3(SetBalanceReport, void(
-      ledger::PUBLISHER_MONTH month,
+      ledger::ACTIVITY_MONTH month,
       int year,
       const ledger::BalanceReportInfo& report_info));
 
@@ -158,7 +171,7 @@ class MockLedgerClient : public ledger::Ledger {
   MOCK_CONST_METHOD0(GetWalletPassphrase,  std::string());
 
   MOCK_CONST_METHOD3(GetBalanceReport, bool(
-      ledger::PUBLISHER_MONTH month,
+      ledger::ACTIVITY_MONTH month,
       int year,
       ledger::BalanceReportInfo* report_info));
 
@@ -189,7 +202,7 @@ class MockLedgerClient : public ledger::Ledger {
       uint64_t windowId,
       const ledger::VisitData& visit_data));
 
-  MOCK_METHOD4(SetBalanceReportItem, void(ledger::PUBLISHER_MONTH month,
+  MOCK_METHOD4(SetBalanceReportItem, void(ledger::ACTIVITY_MONTH month,
                                           int year,
                                           ledger::ReportType type,
                                           const std::string& probi));
@@ -202,9 +215,9 @@ class MockLedgerClient : public ledger::Ledger {
 
   MOCK_METHOD6(OnReconcileCompleteSuccess, void(
       const std::string& viewing_id,
-      const ledger::PUBLISHER_CATEGORY category,
+      const ledger::REWARDS_CATEGORY category,
       const std::string& probi,
-      const ledger::PUBLISHER_MONTH month,
+      const ledger::ACTIVITY_MONTH month,
       const int year,
       const uint32_t date));
 
