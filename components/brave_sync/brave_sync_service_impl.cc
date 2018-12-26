@@ -284,7 +284,8 @@ void BraveSyncServiceImpl::BackgroundSyncStarted(bool startup) {
   if (startup)
     bookmark_change_processor_->Start();
 
-  StartLoop();
+  const bool initial_updates = sync_prefs_->GetSyncDevices()->size() <= 1;
+  StartLoop(initial_updates);
 }
 
 void BraveSyncServiceImpl::BackgroundSyncStopped(bool shutdown) {
@@ -463,6 +464,8 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
   bool contains_only_one_device = false;
 
   auto sync_devices = sync_prefs_->GetSyncDevices();
+  bool had_less_than_two = sync_devices->size() < 2;
+  bool have_two_or_more_after_merge = false;
   for (const auto &record : records) {
     DCHECK(record->has_device() || record->has_sitesetting());
     if (record->has_device()) {
@@ -480,6 +483,7 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
           actually_merged);
       contains_only_one_device = sync_devices->size() < 2 &&
         record->action == jslib::SyncRecord::Action::A_DELETE;
+      have_two_or_more_after_merge = actually_merged && sync_devices->size() >= 2;
     }
   } // for each device
 
@@ -489,6 +493,10 @@ void BraveSyncServiceImpl::OnResolvedPreferences(const RecordsList& records) {
     ResetSyncInternal();
   if (contains_only_one_device)
     OnResetSync();
+
+  if (had_less_than_two && have_two_or_more_after_merge) {
+    StartLoop(false);
+  }
 }
 
 void BraveSyncServiceImpl::OnSyncPrefsChanged(const std::string& pref) {
@@ -603,10 +611,13 @@ void BraveSyncServiceImpl::SendDeviceSyncRecord(
 }
 
 static const int64_t kCheckUpdatesIntervalSec = 60;
+static const int64_t kCheckInitialUpdatesIntervalSec = 1;
 
-void BraveSyncServiceImpl::StartLoop() {
+void BraveSyncServiceImpl::StartLoop(const bool initial_frequent_updates) {
   timer_->Start(FROM_HERE,
-                  base::TimeDelta::FromSeconds(kCheckUpdatesIntervalSec),
+                  base::TimeDelta::FromSeconds(
+                    initial_frequent_updates ? kCheckInitialUpdatesIntervalSec :
+                        kCheckUpdatesIntervalSec),
                   this,
                   &BraveSyncServiceImpl::LoopProc);
 }
