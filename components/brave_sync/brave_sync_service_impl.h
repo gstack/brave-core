@@ -157,7 +157,7 @@ class BraveSyncServiceImpl
     const std::string& deviceId,
     const std::string& objectId);
 
-  void StartLoop(const bool initial_frequent_updates);
+  void StartLoop(const bool waiting_for_second_device);
   void StopLoop();
   void LoopProc();
   void LoopProcThreadAligned();
