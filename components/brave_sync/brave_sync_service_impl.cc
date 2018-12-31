@@ -284,7 +284,8 @@ void BraveSyncServiceImpl::BackgroundSyncStarted(bool startup) {
   if (startup)
     bookmark_change_processor_->Start();
 
-  const bool waiting_for_second_device = sync_prefs_->GetSyncDevices()->size() <= 1;
+  const bool waiting_for_second_device =
+                                     sync_prefs_->GetSyncDevices()->size() <= 1;
   StartLoop(waiting_for_second_device);
 }
 
@@ -615,7 +616,8 @@ static const int64_t kCheckInitialUpdatesIntervalSec = 1;
 void BraveSyncServiceImpl::StartLoop(const bool waiting_for_second_device) {
   timer_->Start(FROM_HERE,
                   base::TimeDelta::FromSeconds(
-                    waiting_for_second_device ? kCheckInitialUpdatesIntervalSec :
+                    waiting_for_second_device ?
+                        kCheckInitialUpdatesIntervalSec :
                         kCheckUpdatesIntervalSec),
                   this,
                   &BraveSyncServiceImpl::LoopProc);
