@@ -643,6 +643,10 @@ void BraveSyncServiceImpl::LoopProcThreadAligned() {
   RequestSyncData();
 }
 
+base::TimeDelta BraveSyncServiceImpl::GetLoopDelay() const {
+  return timer_->GetCurrentDelay();
+}
+
 void BraveSyncServiceImpl::NotifyLogMessage(const std::string& message) {
   DLOG(INFO) << message;
 }
