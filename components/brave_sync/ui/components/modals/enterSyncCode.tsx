@@ -25,7 +25,6 @@ import { getLocale } from '../../../../common/locale'
 interface Props {
   syncData: Sync.State
   actions: any
-  onClose: () => void
 }
 interface State {
   passphrase: string
@@ -47,6 +46,10 @@ export default class EnterSyncCodeModal extends React.PureComponent<Props, State
     this.setState({ passphrase: event.target.value })
   }
 
+  onDismissModal = () => {
+    this.props.actions.maybeOpenSyncModal('enterSyncCode', false)
+  }
+
   onClickConfirmSyncCode = () => {
     const { error, thisDeviceName } = this.props.syncData
     if (thisDeviceName !== '' || error) {
@@ -57,9 +60,9 @@ export default class EnterSyncCodeModal extends React.PureComponent<Props, State
   }
 
   render () {
-    const { onClose, syncData } = this.props
+    const { syncData } = this.props
     return (
-      <Modal id='enterSyncCodeModal' onClose={onClose} size='small'>
+      <Modal id='enterSyncCodeModal' displayCloseButton={false} size='small'>
         {
            syncData.error === 'ERR_SYNC_WRONG_WORDS'
            ? <AlertBox okString={getLocale('ok')} onClickOk={this.onUserNoticedError}>
@@ -110,7 +113,7 @@ export default class EnterSyncCodeModal extends React.PureComponent<Props, State
               level='secondary'
               type='accent'
               size='medium'
-              onClick={onClose}
+              onClick={this.onDismissModal}
               text={getLocale('cancel')}
             />
           </OneColumnButtonGrid>

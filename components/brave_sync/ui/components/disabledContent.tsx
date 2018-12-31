@@ -18,11 +18,16 @@ import {
   DisabledContent
 } from 'brave-ui/features/sync'
 
+// Icons
+import { LoaderIcon } from 'brave-ui/components/icons'
+
 import { SyncStartIcon } from 'brave-ui/features/sync/images'
 
 // Modals
 import DeviceTypeModal from './modals/deviceType'
 import EnterSyncCodeModal from './modals/enterSyncCode'
+import ViewSyncCodeModal from './modals/viewSyncCode'
+import ScanCodeModal from './modals/scanCode'
 
 // Utils
 import { getLocale } from '../../../common/locale'
@@ -33,30 +38,46 @@ interface Props {
 }
 
 interface State {
-  newToSync: boolean
-  existingSyncCode: boolean
+  willCreateNewSyncChain: boolean
 }
 
 export default class SyncDisabledContent extends React.PureComponent<Props, State> {
   constructor (props: Props) {
     super(props)
-    this.state = {
-      newToSync: false,
-      existingSyncCode: false
+    this.state = { willCreateNewSyncChain: false }
+  }
+
+  componentDidUpdate (prevProps: Props) {
+    // creating the chain can take a while and the operation
+    // resets all sync states so in this case set a loading indicator
+    // until Sync is ready. once ready, open the proper modal
+    if (
+      prevProps.syncData.thisDeviceName !==
+      this.props.syncData.thisDeviceName
+    ) {
+      this.props.actions.maybeOpenSyncModal('deviceType', true)
+      // modal is open, reset loading state
+      this.setState({ willCreateNewSyncChain: false })
     }
   }
 
   onClickNewSyncChainButton = () => {
-    this.setState({ newToSync: !this.state.newToSync })
+    // once user clicks "start a new sync chain", create the chain
+    this.setState({ willCreateNewSyncChain: true })
+
+    const { thisDeviceName } = this.props.syncData
+    if (thisDeviceName === '') {
+      this.props.actions.onSetupNewToSync('')
+    }
   }
 
   onClickEnterSyncChainCodeButton = () => {
-    this.setState({ existingSyncCode: !this.state.existingSyncCode })
+    this.props.actions.maybeOpenSyncModal('enterSyncCode', true)
   }
 
   render () {
     const { actions, syncData } = this.props
-    const { newToSync, existingSyncCode } = this.state
+    const { willCreateNewSyncChain } = this.state
 
     if (!syncData) {
       return null
@@ -66,13 +87,23 @@ export default class SyncDisabledContent extends React.PureComponent<Props, Stat
       <DisabledContent>
         <Main>
           {
-            newToSync
-              ? <DeviceTypeModal syncData={syncData} actions={actions} onClose={this.onClickNewSyncChainButton} />
+            syncData.modalsOpen.deviceType
+              ? <DeviceTypeModal syncData={syncData} actions={actions} />
               : null
           }
           {
-            existingSyncCode
-              ? <EnterSyncCodeModal syncData={syncData} actions={actions} onClose={this.onClickEnterSyncChainCodeButton} />
+            syncData.modalsOpen.enterSyncCode
+              ? <EnterSyncCodeModal syncData={syncData} actions={actions} />
+              : null
+          }
+          {
+            syncData.modalsOpen.scanCode
+              ? <ScanCodeModal syncData={syncData} actions={actions} />
+              : null
+          }
+          {
+            syncData.modalsOpen.viewSyncCode
+              ? <ViewSyncCodeModal syncData={syncData} actions={actions} />
               : null
           }
           <SyncCard>
@@ -87,6 +118,11 @@ export default class SyncDisabledContent extends React.PureComponent<Props, Stat
                     type='accent'
                     onClick={this.onClickNewSyncChainButton}
                     text={getLocale('startSyncChain')}
+                    disabled={willCreateNewSyncChain}
+                    icon={{
+                      position: 'after',
+                      image: willCreateNewSyncChain && <LoaderIcon />
+                    }}
                   />
                   <Button
                     level='secondary'

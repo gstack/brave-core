@@ -30,6 +30,7 @@ import {
 // Modals
 import RemoveDeviceModal from './modals/removeDevice'
 import ViewSyncCodeModal from './modals/viewSyncCode'
+import ScanCodeModal from './modals/scanCode'
 import DeviceTypeModal from './modals/deviceType'
 import ResetSyncModal from './modals/resetSync'
 
@@ -43,9 +44,6 @@ interface Props {
 
 interface State {
   removeDevice: boolean
-  viewSyncCode: boolean
-  addDevice: boolean
-  resetSync: boolean
   deviceToRemoveName: string | undefined
   deviceToRemoveId: string | undefined
 }
@@ -55,9 +53,6 @@ export default class SyncEnabledContent extends React.PureComponent<Props, State
     super(props)
     this.state = {
       removeDevice: false,
-      viewSyncCode: false,
-      addDevice: false,
-      resetSync: false,
       deviceToRemoveName: '',
       deviceToRemoveId: ''
     }
@@ -146,15 +141,15 @@ export default class SyncEnabledContent extends React.PureComponent<Props, State
   }
 
   onClickViewSyncCodeButton = () => {
-    this.setState({ viewSyncCode: !this.state.viewSyncCode })
+    this.props.actions.maybeOpenSyncModal('viewSyncCode', true)
   }
 
   onClickAddDeviceButton = () => {
-    this.setState({ addDevice: !this.state.addDevice })
+    this.props.actions.maybeOpenSyncModal('deviceType', true)
   }
 
   onClickResetSyncButton = () => {
-    this.setState({ resetSync: !this.state.resetSync })
+    this.props.actions.maybeOpenSyncModal('resetSync', true)
   }
 
   onSyncBookmarks = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,14 +158,7 @@ export default class SyncEnabledContent extends React.PureComponent<Props, State
 
   render () {
     const { actions, syncData } = this.props
-    const {
-      removeDevice,
-      viewSyncCode,
-      addDevice,
-      resetSync,
-      deviceToRemoveName,
-      deviceToRemoveId
-    } = this.state
+    const { deviceToRemoveName, deviceToRemoveId } = this.state
 
     if (!syncData) {
       return null
@@ -196,30 +184,34 @@ export default class SyncEnabledContent extends React.PureComponent<Props, State
             : null
           }
           {
-            removeDevice
+            syncData.modalsOpen.removeDevice
               ? (
                 <RemoveDeviceModal
                   deviceName={deviceToRemoveName}
                   deviceId={Number(deviceToRemoveId)}
                   actions={actions}
-                  onClose={this.onClickRemoveDeviceButton}
                 />
               )
               : null
           }
           {
-            viewSyncCode
-              ? <ViewSyncCodeModal syncData={syncData} actions={actions} onClose={this.onClickViewSyncCodeButton} />
+            syncData.modalsOpen.viewSyncCode
+              ? <ViewSyncCodeModal syncData={syncData} actions={actions} />
               : null
           }
           {
-            addDevice
-              ? <DeviceTypeModal syncData={syncData} actions={actions} onClose={this.onClickAddDeviceButton} />
+            syncData.modalsOpen.scanCode
+              ? <ScanCodeModal syncData={syncData} actions={actions} />
               : null
           }
           {
-            resetSync
-              ? <ResetSyncModal syncData={syncData} actions={actions} onClose={this.onClickResetSyncButton} />
+            syncData.modalsOpen.deviceType
+              ? <DeviceTypeModal syncData={syncData} actions={actions} />
+              : null
+          }
+          {
+            syncData.modalsOpen.resetSync
+              ? <ResetSyncModal syncData={syncData} actions={actions} />
               : null
           }
           <SyncCard>
